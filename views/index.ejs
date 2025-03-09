@@ -4,34 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather App</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center; 
-            margin-top: 50px;
-        }
-        .error { color: red; }
-        .weather-container { margin-top: 20px; }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/styles.css"> 
 </head>
 <body>
-    <h1>Weather App</h1>
-    <form action="/weather" method="POST">
-        <input type="text" name="city" placeholder="Enter city name" required>
-        <button type="submit">Get Weather</button>
-    </form>
+    <div class="container d-flex flex-column justify-content-center align-items-center vh-100">
+        <div class="card shadow-lg p-4 text-center" style="max-width: 450px; width: 100%; border-radius: 15px;">
+            <h1 class="mb-3">🌤 Weather App</h1>
 
-    <% if (error) { %>
-        <p class="error"><%= error %></p>
-    <% } %>
+            <form action="/weather" method="POST">
+                <input type="text" name="city" class="form-control mb-3 text-center" placeholder="Enter a city..." required>
+                <button type="submit" class="btn btn-primary w-100">Get Weather</button>
+            </form>
 
-    <% if (weatherData) { %>
-        <div class="weather-container">
-            <h2>Weather in <%= weatherData.city %></h2>
-            <p>Temperature: <%= weatherData.temperature %>°C</p>
-            <p>Condition: <%= weatherData.weatherMain %></p>
-            <img src="<%= weatherData.icon %>" alt="Weather Icon">
+            <% if (weatherData) { %>
+                <div class="weather-result mt-4">
+                    <h2 class="fw-bold text-primary"><%= weatherData.city %></h2>
+                    <h3 class="fw-bold"><%= weatherData.temperature %>°C</h3>
+                    <p class="text-muted"><%= weatherData.weatherMain %></p>
+                    <img src="<%= weatherData.icon %>" alt="Weather Icon" class="img-fluid">
+                </div>
+            <% } %>
+
+            <% if (error) { %>
+                <p class="text-danger mt-3"><%= error %></p>
+            <% } %>
         </div>
-    <% } %>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
