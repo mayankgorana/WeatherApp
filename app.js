@@ -1,10 +1,9 @@
 import express from "express";
 import https from "https";
-import bodyParser from "body-parser"; 
+import bodyParser from "body-parser";
 import dotenv from "dotenv";
 
 dotenv.config();
-
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -12,48 +11,50 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
-    res.render("index", { weatherData: null, error: null });
+    res.render("index", { weatherData: null, forecastData: null, error: null });
 });
 
 app.post("/weather", (req, res) => {
     const city = req.body.city;
-
     if (!city) {
-        return res.render("index", { weatherData: null, error: "City is required" });
+        return res.render("index", { weatherData: null, forecastData: null, error: "City is required" });
     }
 
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${process.env.ApiId}`;
+    const apiKey = process.env.ApiId;
+    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
 
-    https.get(url, (response) => {
-        let data = "";
-
+    https.get(weatherUrl, (response) => {
+        let weatherData = "";
         response.on("data", (chunk) => {
-            data += chunk;
+            weatherData += chunk;
         });
 
         response.on("end", () => {
-            try {
-                const weatherData = JSON.parse(data);
-                if (weatherData.cod !== 200) {
-                    return res.render("index", { weatherData: null, error: "Invalid city name" });
-                }
-
-                const temperature = (weatherData.main.temp - 273.15).toFixed(2);
-                const weatherMain = weatherData.weather[0].main;
-                const icon = `https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`;
-
-                res.render("index", {
-                    weatherData: { temperature, weatherMain, icon, city },
-                    error: null
-                });
-            } catch (error) {
-                res.render("index", { weatherData: null, error: "Error processing weather data" });
+            const parsedWeatherData = JSON.parse(weatherData);
+            if (parsedWeatherData.cod !== 200) {
+                return res.render("index", { weatherData: null, forecastData: null, error: "Invalid city name" });
             }
+
+            https.get(forecastUrl, (forecastResponse) => {
+                let forecastData = "";
+                forecastResponse.on("data", (chunk) => {
+                    forecastData += chunk;
+                });
+                
+                forecastResponse.on("end", () => {
+                    const parsedForecastData = JSON.parse(forecastData);
+                    res.render("index", {
+                        weatherData: parsedWeatherData,
+                        forecastData: parsedForecastData.list.slice(0, 5), // 5-day forecast
+                        error: null
+                    });
+                });
+            });
         });
     });
 });
 
-
-app.listen(process.env.PORT, () => {
-    console.log("Server started on port 3000");
+app.listen(3000, () => {
+    console.log("Server running on port 3000");
 });
